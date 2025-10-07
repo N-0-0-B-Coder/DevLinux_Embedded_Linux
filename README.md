@@ -6,4 +6,4 @@
 1. [Generate Knowledge](#generate-knowledge)
 
 ## Generate Knowledge
-The homework for shared and static library usage
+The homework for shared and static library usage is [here](General_Knowledge)
