@@ -5,24 +5,32 @@ CFLAGS := -Wall -fPIC #-O2
 AR := ar
 ARFLAGS := rcs
 
-INC := -Ilib/
-INC_BUILD := -Ibuild/
+INC_FLAGS := -Ilib/
+
+INC := lib/strutils.h
 SRC := lib/bstrutils.c
 
 MAIN := main.c
+LIB_DIR := strutils/
+LIB_DIR_SHARED := $(LIB_DIR)/shared/
+LIB_DIR_STATIC := $(LIB_DIR)/static/
 BUILD_DIR := build/
 
-OBJ := $(BUILD_DIR)bstrutils.o
-STATIC_LIB := $(BUILD_DIR)libstrutils.a
-SHARED_LIB := $(BUILD_DIR)libstrutils.so
+OBJ := $(LIB_DIR)bstrutils.o
+STATIC_LIB := $(LIB_DIR_STATIC)libstrutils.a
+SHARED_LIB := $(LIB_DIR_SHARED)libstrutils.so
+STATIC_APP := $(BUILD_DIR)main_static
+SHARED_APP := $(BUILD_DIR)main_shared
 
-all: $(STATIC_LIB) $(SHARED_LIB)
-
-build:
+$(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(OBJ): $(SRC) lib/strutils.h | build
-	$(CC) $(CFLAGS) $(INC) -c $(SRC) -o $(OBJ)
+$(LIB_DIR):
+	mkdir -p $(LIB_DIR_SHARED)
+	mkdir -p $(LIB_DIR_STATIC)
+
+$(OBJ): $(SRC) $(INC) | $(LIB_DIR)
+	$(CC) $(CFLAGS) $(INC_FLAGS) -c $(SRC) -o $(OBJ)
 
 $(STATIC_LIB): $(OBJ)
 	$(AR) $(ARFLAGS) $@ $^
@@ -30,17 +38,19 @@ $(STATIC_LIB): $(OBJ)
 $(SHARED_LIB): $(OBJ)
 	$(CC) -shared -o $@ $^
 
-	main_static: $(STATIC_LIB) $(MAIN)
-		$(CC) $(CFLAGS) $(INC) -L$(BUILD_DIR) -lstrutils $(MAIN) -o $(BUILD_DIR)main_static
+$(STATIC_APP): $(MAIN) $(STATIC_LIB) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INC_FLAGS) $(MAIN) -L$(LIB_DIR_STATIC) -lstrutils -o $@
 
-	main_shared: $(SHARED_LIB) $(MAIN)
-		$(CC) $(CFLAGS) $(INC) -L$(BUILD_DIR) -lstrutils $(MAIN) -o $(BUILD_DIR)main_shared
+$(SHARED_APP): $(MAIN) $(SHARED_LIB) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INC_FLAGS) $(MAIN) -L$(LIB_DIR_SHARED) -lstrutils -Wl,-rpath,$(PWD)/$(LIB_DIR_SHARED) -o $@
 
-static: $(STATIC_LIB)
+all: $(STATIC_APP) $(SHARED_APP)
 
-shared: $(SHARED_LIB)
+static: $(STATIC_APP)
+
+shared: $(SHARED_APP)
 
 clean:
-	rm -rf build
+	rm -rf $(BUILD_DIR) $(LIB_DIR)
 
-.PHONY: all static shared clean build
+.PHONY: all static shared clean

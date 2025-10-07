@@ -1,6 +1,6 @@
 #include "strutils.h"
 
-void main(void) {
+int main(void) {
     char str1[] = "Hello, World!";
     char str2[] = "   Trim me!   ";
     char str3[] = "12345";
@@ -13,4 +13,6 @@ void main(void) {
 
     printf("String: '%s'\n", str3);
     printf("Converted to int: %d\n", str_to_int(str3));
+
+    return 0;
 }
