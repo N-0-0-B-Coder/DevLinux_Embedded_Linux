@@ -58,3 +58,6 @@ dkms.conf
 build/
 BUILD/
 Build/
+
+# log files
+*.log
